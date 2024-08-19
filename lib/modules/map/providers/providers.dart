@@ -23,8 +23,20 @@ final markersProvider = StateProvider<List<Marker>>((ref) {
   return [];
 });
 
+final startPointProvider = StateProvider<SearchResult?>((ref) {
+  return;
+});
+
+final endPointProvider = StateProvider<SearchResult?>((ref) {
+  return;
+});
+
 final polylinesProvider = StateProvider<List<Polyline>>((ref) {
   return [];
+});
+
+final selectedTransportTypeProvider = StateProvider<int>((ref) {
+  return 0;
 });
 
 final toggleMeasureModeProvider = StateProvider<bool>((ref) {

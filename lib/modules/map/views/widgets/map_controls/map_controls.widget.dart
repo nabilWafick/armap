@@ -8,10 +8,12 @@ import 'package:test/utils/utils.dart';
 
 class MapControls extends StatefulHookConsumerWidget {
   final VoidCallback onCenterToUser;
+  final VoidCallback showRouteConfigBottomSheet;
 
   const MapControls({
     super.key,
     required this.onCenterToUser,
+    required this.showRouteConfigBottomSheet,
   });
 
   @override
@@ -33,7 +35,14 @@ class _MapControlsState extends ConsumerState<MapControls> {
           FloatingActionButton(
             heroTag: 'Distance',
             backgroundColor: toggleMeasureMode ? Colors.white : null,
-            onPressed: () {},
+            onPressed: () {
+              ref.invalidate(measurePointsProvider);
+              ref.invalidate(measuredDistanceProvider);
+
+              ref.read(toggleMeasureModeProvider.notifier).update(
+                    (state) => !state,
+                  );
+            },
             child: Icon(
               Icons.social_distance,
               color: toggleMeasureMode ? ARMColors.primary : Colors.white,
@@ -92,8 +101,8 @@ class _MapControlsState extends ConsumerState<MapControls> {
           ),
           const SizedBox(height: 10.0),
           FloatingActionButton(
-            heroTag: 'Center To User',
-            onPressed: widget.onCenterToUser,
+            heroTag: 'Itineraire',
+            onPressed: widget.showRouteConfigBottomSheet,
             child: const Icon(
               Icons.directions_rounded,
               color: Colors.white,

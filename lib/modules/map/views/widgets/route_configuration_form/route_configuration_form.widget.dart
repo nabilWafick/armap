@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:test/common/widgets/text/text.widget.dart';
-import 'package:test/common/widgets/textformfield/textformfield.widget.dart';
-import 'package:test/modules/map/views/transport_type/transport_type.widget.dart';
+import 'package:test/modules/map/providers/providers.dart';
+import 'package:test/modules/map/views/widgets/search_card/search_card.widget.dart';
+import 'package:test/modules/map/views/widgets/transport_type/transport_type.widget.dart';
 import 'package:test/utils/colors/colors.util.dart';
 
 class RouteConfigurationForm extends StatefulHookConsumerWidget {
-  const RouteConfigurationForm({super.key});
+  final MapController mapController;
+  const RouteConfigurationForm({
+    super.key,
+    required this.mapController,
+  });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -20,10 +26,10 @@ class _RouteConfigurationFormState
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: 20.0,
-        horizontal: 20.0,
+        horizontal: 10.0,
       ),
-      decoration: BoxDecoration(
-        color: Colors.blueGrey[50],
+      /*  decoration: BoxDecoration(
+        color: Colors.blueGrey[300],
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(
             35.0,
@@ -33,7 +39,9 @@ class _RouteConfigurationFormState
           ),
         ),
       ),
+     */
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const ARMText(
@@ -52,21 +60,21 @@ class _RouteConfigurationFormState
               child: Row(
                 children: [
                   TransportType(
-                    index: 2,
+                    index: 0,
                     icon: Icons.directions_car_outlined,
                     name: 'Driving',
                     duration: '15 min',
                     onTap: () {},
                   ),
                   TransportType(
-                    index: 3,
+                    index: 1,
                     icon: Icons.motorcycle_outlined,
                     name: 'Cycling',
                     duration: '18 min',
                     onTap: () {},
                   ),
                   TransportType(
-                    index: 4,
+                    index: 2,
                     icon: Icons.directions_walk_outlined,
                     name: 'Foot',
                     duration: '40 min',
@@ -80,32 +88,25 @@ class _RouteConfigurationFormState
             children: [
               Column(
                 children: [
-                  ARMTextFormField(
+                  SearchCard(
+                    mapController: widget.mapController,
                     hintText: 'Start Point',
-                    label: 'Start',
-                    isMultilineTextForm: false,
-                    obscureText: false,
-                    prefixIcon: Icons.account_circle,
-                    suffixIcon: Icons.edit,
-                    textInputType: TextInputType.text,
-                    validator: (p0, p1) {
-                      return;
-                    },
-                    onChanged: (p0, p1) {},
+                    prefixIcon: Icons.account_circle_rounded,
+                    suffixIcon: Icons.edit_rounded,
+                    suffixIconColor: Colors.grey.shade400,
+                    locationProvider: startPointProvider,
                   ),
-                  ARMTextFormField(
+                  SearchCard(
+                    mapController: widget.mapController,
                     hintText: 'End Point',
-                    label: 'Arrival',
-                    isMultilineTextForm: false,
-                    obscureText: false,
-                    prefixIcon: Icons.flag,
-                    suffixIcon: Icons.edit,
-                    textInputType: TextInputType.text,
-                    validator: (p0, p1) {
-                      return;
-                    },
-                    onChanged: (p0, p1) {},
+                    prefixIcon: Icons.flag_rounded,
+                    suffixIcon: Icons.edit_rounded,
+                    suffixIconColor: Colors.grey.shade400,
+                    locationProvider: endPointProvider,
                   ),
+                  const SizedBox(
+                    height: 25.0,
+                  )
                 ],
               ),
               Positioned(

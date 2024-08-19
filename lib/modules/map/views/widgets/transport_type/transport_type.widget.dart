@@ -2,11 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:test/common/widgets/text/text.widget.dart';
+import 'package:test/modules/map/providers/providers.dart';
 import 'package:test/utils/colors/colors.util.dart';
-
-final selectedTranssportTypeProvider = StateProvider<int>((ref) {
-  return 0;
-});
 
 class TransportType extends StatefulHookConsumerWidget {
   final int index;
@@ -30,11 +27,11 @@ class TransportType extends StatefulHookConsumerWidget {
 class _TransportTypeState extends ConsumerState<TransportType> {
   @override
   Widget build(BuildContext context) {
-    final selectedTransporType = ref.watch(selectedTranssportTypeProvider);
+    final selectedTransporType = ref.watch(selectedTransportTypeProvider);
     return InkWell(
       onTap: () {
         widget.onTap();
-        ref.read(selectedTranssportTypeProvider.notifier).state = widget.index;
+        ref.read(selectedTransportTypeProvider.notifier).state = widget.index;
       },
       child: Container(
         margin: const EdgeInsets.symmetric(
@@ -45,6 +42,7 @@ class _TransportTypeState extends ConsumerState<TransportType> {
           horizontal: 12.0,
         ),
         decoration: BoxDecoration(
+          color: Colors.white,
           border: selectedTransporType == widget.index
               ? Border.all(
                   color: ARMColors.primary,

@@ -1,15 +1,17 @@
 import 'dart:math';
 
-import 'package:hugeicons/hugeicons.dart';
-import 'package:test/common/services/location/location.service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:test/common/services/location/location.service.dart';
 import 'package:test/common/services/search/search.service.dart';
+import 'package:test/common/widgets/label_value/label_value.model.dart';
 import 'package:test/modules/map/providers/providers.dart';
 import 'package:test/modules/map/views/widgets/map_controls/map_controls.widget.dart';
-import 'package:test/modules/map/views/widgets/search/search.page.dart';
+import 'package:test/modules/map/views/widgets/route_configuration_form/route_configuration_form.widget.dart';
+import 'package:test/modules/map/views/widgets/search_card/search_card.widget.dart';
 import 'package:test/utils/utils.dart';
 
 class MapView extends StatefulHookConsumerWidget {
@@ -91,14 +93,26 @@ class _MapViewState extends ConsumerState<MapView> {
     return 12742 * asin(sqrt(a));
   }
 
+  _showRouteConfigBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return RouteConfigurationForm(
+          mapController: mapController,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUserLocation = ref.watch(currentUserLocationProvider);
-    final searchedLocation = ref.watch(searchedLocationProvider);
     final markers = ref.watch(markersProvider);
     final polylines = ref.watch(polylinesProvider);
     final toggleMeasureMode = ref.watch(toggleMeasureModeProvider);
+    final measurePoints = ref.watch(measurePointsProvider);
     final measuredDistance = ref.watch(measuredDistanceProvider);
+
     return SafeArea(
       child: Stack(
         children: [
@@ -110,9 +124,13 @@ class _MapViewState extends ConsumerState<MapView> {
               initialZoom: 15.0,
               onTap: (tapPosition, point) {
                 if (toggleMeasureMode) {
-                  _addMeasurePoint(point);
+                  setState(() {
+                    _addMeasurePoint(point);
+                  });
                 }
               },
+              minZoom: ARMConstants.minZoom,
+              maxZoom: ARMConstants.maxZoom,
             ),
             children: [
               TileLayer(
@@ -123,10 +141,18 @@ class _MapViewState extends ConsumerState<MapView> {
                 markers: markers,
               ),
               PolylineLayer(
-                polylines: polylines,
+                polylines: [
+                  ...polylines,
+                  if (toggleMeasureMode)
+                    Polyline(
+                      points: measurePoints,
+                      color: Colors.green.shade500,
+                      strokeWidth: 5.0,
+                    )
+                ],
               ),
               !toggleMeasureMode
-                  ? InkWell(
+                  ? /*InkWell(
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -181,27 +207,44 @@ class _MapViewState extends ConsumerState<MapView> {
                         ),
                       ),
                     )
-                  : Container(
-                      alignment: Alignment.center,
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 15.0,
-                        vertical: 10.0,
-                      ),
-                      padding: const EdgeInsets.all(15.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                      child: Text(
-                        'Distance: ${measuredDistance}m',
-                        style: const TextStyle(
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w500,
+                 */
+                  SearchCard(
+                      mapController: mapController,
+                      hintText: 'Search for a place',
+                      prefixIcon: HugeIcons.strokeRoundedLocation01,
+                      suffixIcon: HugeIcons.strokeRoundedSearch01,
+                      suffixIconColor: ARMColors.primary,
+                      locationProvider: searchedLocationProvider,
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 15.0,
+                            vertical: 10.0,
+                          ),
+                          padding: const EdgeInsets.all(15.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(25.0),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              LabelValue(
+                                label: 'Distance',
+                                value:
+                                    '${measuredDistance.toStringAsFixed(3)}km',
+                              )
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
               MapControls(
                 onCenterToUser: _getCurrentLocation,
+                showRouteConfigBottomSheet: _showRouteConfigBottomSheet,
               ),
             ],
           ),

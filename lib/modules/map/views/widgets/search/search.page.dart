@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:test/common/models/search_result/search_result.model.dart';
 import 'package:test/common/services/search/search.service.dart';
 import 'package:test/modules/map/providers/providers.dart';
@@ -11,12 +10,12 @@ import 'package:test/utils/colors/colors.util.dart';
 class SearchPage extends StatefulHookConsumerWidget {
   final MapController mapController;
   final bool isSimpleSearch;
-  final StateProvider<LatLng>? coordinateProvider;
+  final StateProvider<SearchResult?> locationProvider;
   const SearchPage({
     super.key,
     required this.mapController,
     required this.isSimpleSearch,
-    this.coordinateProvider,
+    required this.locationProvider,
   });
 
   @override
@@ -42,6 +41,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   void _selectSearchResult(SearchResult result) {
+    ref.read(widget.locationProvider.notifier).state = result;
+
     ref.read(markersProvider.notifier).state = [
       Marker(
         point: result.latLng,
@@ -66,8 +67,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   void initState() {
     super.initState();
 
+/*
     textEditingController.text =
-        ref.watch(searchedLocationProvider)?.displayName ?? '';
+        ref.read(searchedLocationProvider)?.displayName ?? '';
+
+        */
   }
 
   @override
@@ -83,6 +87,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           margin: const EdgeInsets.symmetric(vertical: 10.0),
           height: 45.0,
           child: TextField(
+            controller: textEditingController,
             cursorColor: ARMColors.primary,
             decoration: InputDecoration(
               hintText: 'Search for a place',
@@ -104,12 +109,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(
-                  25.0,
+                  15.0,
+                ),
+                borderSide: BorderSide(
+                  color: Colors.grey.shade400,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(
-                  25.0,
+                  15.0,
                 ),
                 borderSide: const BorderSide(
                   color: ARMColors.primary,
@@ -165,8 +173,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     if (widget.isSimpleSearch) {
                       _selectSearchResult(searchResults[index]);
                     } else {
-                      ref.read(widget.coordinateProvider!.notifier).state =
-                          searchResults[index].latLng;
+                      ref.read(widget.locationProvider.notifier).state =
+                          searchResults[index];
+
+                      Navigator.of(context).pop();
                     }
                   },
                 );
