@@ -1,18 +1,18 @@
 import 'package:latlong2/latlong.dart';
 
-class SearchResult {
+class Location {
   final String name;
   final String displayName;
   final LatLng latLng;
 
-  SearchResult({
+  Location({
     required this.name,
     required this.displayName,
     required this.latLng,
   });
 
-  factory SearchResult.fromJson(Map<String, dynamic> json) {
-    return SearchResult(
+  factory Location.fromJson(Map<String, dynamic> json) {
+    return Location(
       name: json['name'],
       displayName: json['display_name'],
       latLng: LatLng(

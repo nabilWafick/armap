@@ -26,9 +26,10 @@ class _MapControlsState extends ConsumerState<MapControls> {
     final controller = MapController.of(context);
     final camera = MapCamera.of(context);
     final toggleMeasureMode = ref.watch(toggleMeasureModeProvider);
+    final travelRouteData = ref.watch(travelRouteProvider);
 
     return Positioned(
-      bottom: 90.0,
+      bottom: 120.0,
       right: 16.0,
       child: Column(
         children: [
@@ -79,17 +80,16 @@ class _MapControlsState extends ConsumerState<MapControls> {
             ),
           ),
           const SizedBox(height: 10.0),
-          /*  FloatingActionButton(
-            heroTag: 'AR Mode',
-            onPressed: () {},
-            child: const Icon(
-              Icons.view_in_ar_rounded,
-              color: Colors.white,
-            ),
-          )*/
-          const SizedBox(
-            height: 50.0,
-          ),
+          travelRouteData != null
+              ? FloatingActionButton(
+                  heroTag: 'AR Mode',
+                  onPressed: () {},
+                  child: const Icon(
+                    Icons.view_in_ar_rounded,
+                    color: Colors.white,
+                  ),
+                )
+              : const SizedBox(),
           const SizedBox(height: 10.0),
           FloatingActionButton(
             heroTag: 'Center To User',
@@ -102,7 +102,18 @@ class _MapControlsState extends ConsumerState<MapControls> {
           const SizedBox(height: 10.0),
           FloatingActionButton(
             heroTag: 'Itineraire',
-            onPressed: widget.showRouteConfigBottomSheet,
+            onPressed: () {
+              widget.showRouteConfigBottomSheet();
+
+              // define current position as start point
+              final startPoint = ref.read(startPointProvider);
+              final endPoint = ref.read(endPointProvider);
+
+              if (startPoint == null && endPoint == null) {
+                ref.read(startPointProvider.notifier).state =
+                    ref.read(currentUserLocationProvider);
+              }
+            },
             child: const Icon(
               Icons.directions_rounded,
               color: Colors.white,

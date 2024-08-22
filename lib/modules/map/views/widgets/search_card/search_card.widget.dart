@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:test/common/models/search_result/search_result.model.dart';
-import 'package:test/modules/map/views/widgets/search/search.page.dart';
+import 'package:test/common/models/location/location.model.dart';
+import 'package:test/modules/map/views/pages/search/search.page.dart';
 import 'package:test/utils/colors/colors.util.dart';
 
 class SearchCard extends StatefulHookConsumerWidget {
   final MapController mapController;
   final String hintText;
+  final bool isSimpleSearch;
   final IconData prefixIcon;
   final Color? prefixIconColor;
   final IconData suffixIcon;
   final Color? suffixIconColor;
-  final StateProvider<SearchResult?> locationProvider;
+  final StateProvider<Location?> locationProvider;
   final bool? isFullyRounded;
   const SearchCard({
     super.key,
     required this.mapController,
     required this.hintText,
+    required this.isSimpleSearch,
     required this.prefixIcon,
     this.prefixIconColor,
     required this.suffixIcon,
@@ -40,7 +42,7 @@ class _SearchCardState extends ConsumerState<SearchCard> {
           MaterialPageRoute(
             builder: (context) => SearchPage(
               mapController: widget.mapController,
-              isSimpleSearch: false,
+              isSimpleSearch: widget.isSimpleSearch,
               locationProvider: widget.locationProvider,
             ),
           ),

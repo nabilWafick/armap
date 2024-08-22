@@ -1,12 +1,11 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:test/common/models/search_result/search_result.model.dart';
+import 'package:test/common/models/location/location.model.dart';
 
 class SearchService {
   final Dio _dio = Dio();
   final String baseUrl = 'https://nominatim.openstreetmap.org/search';
 
-  Future<List<SearchResult>> searchPlaces(String query) async {
+  Future<List<Location>> searchPlaces(String query) async {
     try {
       final response = await _dio.get(
         baseUrl,
@@ -18,11 +17,11 @@ class SearchService {
       );
 
       if (response.statusCode == 200) {
-        debugPrint(response.data.toString());
+        //   debugPrint(response.data.toString());
 
         return (response.data as List)
             .map(
-              (item) => SearchResult.fromJson(item),
+              (item) => Location.fromJson(item),
             )
             .toList();
       } else {

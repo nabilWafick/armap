@@ -1,9 +1,11 @@
 import 'package:flutter_map/flutter_map.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:test/common/models/search_result/search_result.model.dart';
+import 'package:test/common/models/location/location.model.dart';
+import 'package:test/modules/map/models/map.models.dart';
+import 'package:test/modules/map/models/route_data/route_data.model.dart';
 
-final currentUserLocationProvider = StateProvider<LatLng?>((ref) {
+final currentUserLocationProvider = StateProvider<Location?>((ref) {
   return;
 });
 
@@ -11,11 +13,11 @@ final isSearchingProvider = StateProvider<bool>((ref) {
   return false;
 });
 
-final searchedLocationProvider = StateProvider<SearchResult?>((ref) {
+final searchedLocationProvider = StateProvider<Location?>((ref) {
   return;
 });
 
-final searchResultsProvider = StateProvider<List<SearchResult>>((ref) {
+final searchedLocationsProvider = StateProvider<List<Location>>((ref) {
   return [];
 });
 
@@ -23,11 +25,19 @@ final markersProvider = StateProvider<List<Marker>>((ref) {
   return [];
 });
 
-final startPointProvider = StateProvider<SearchResult?>((ref) {
+final startPointProvider = StateProvider<Location?>((ref) {
   return;
 });
 
-final endPointProvider = StateProvider<SearchResult?>((ref) {
+final endPointProvider = StateProvider<Location?>((ref) {
+  return;
+});
+
+final travelModeProvider = StateProvider<String>((ref) {
+  return TravelMode.driving;
+});
+
+final travelRouteProvider = StateProvider<RouteData?>((ref) {
   return;
 });
 

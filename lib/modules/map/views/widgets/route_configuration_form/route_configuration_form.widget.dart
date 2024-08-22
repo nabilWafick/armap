@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:test/common/widgets/icon_button/icon_button.widget.dart';
 import 'package:test/common/widgets/text/text.widget.dart';
+import 'package:test/modules/map/models/travel_mode/travel_mode.model.dart';
 import 'package:test/modules/map/providers/providers.dart';
+import 'package:test/modules/map/views/pages/steps/steps.page.dart';
 import 'package:test/modules/map/views/widgets/search_card/search_card.widget.dart';
 import 'package:test/modules/map/views/widgets/transport_type/transport_type.widget.dart';
 import 'package:test/utils/colors/colors.util.dart';
@@ -23,6 +26,7 @@ class _RouteConfigurationFormState
     extends ConsumerState<RouteConfigurationForm> {
   @override
   Widget build(BuildContext context) {
+    final travelRoute = ref.watch(travelRouteProvider);
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: 20.0,
@@ -54,31 +58,25 @@ class _RouteConfigurationFormState
               top: 20.0,
               bottom: 25.0,
             ),
-            child: SingleChildScrollView(
+            child: const SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
+              physics: BouncingScrollPhysics(),
               child: Row(
                 children: [
                   TransportType(
-                    index: 0,
+                    type: TravelMode.driving,
                     icon: Icons.directions_car_outlined,
                     name: 'Driving',
-                    duration: '15 min',
-                    onTap: () {},
                   ),
                   TransportType(
-                    index: 1,
+                    type: TravelMode.cycling,
                     icon: Icons.motorcycle_outlined,
                     name: 'Cycling',
-                    duration: '18 min',
-                    onTap: () {},
                   ),
                   TransportType(
-                    index: 2,
+                    type: TravelMode.foot,
                     icon: Icons.directions_walk_outlined,
                     name: 'Foot',
-                    duration: '40 min',
-                    onTap: () {},
                   ),
                 ],
               ),
@@ -91,6 +89,7 @@ class _RouteConfigurationFormState
                   SearchCard(
                     mapController: widget.mapController,
                     hintText: 'Start Point',
+                    isSimpleSearch: false,
                     prefixIcon: Icons.account_circle_rounded,
                     suffixIcon: Icons.edit_rounded,
                     suffixIconColor: Colors.grey.shade400,
@@ -99,6 +98,7 @@ class _RouteConfigurationFormState
                   SearchCard(
                     mapController: widget.mapController,
                     hintText: 'End Point',
+                    isSimpleSearch: false,
                     prefixIcon: Icons.flag_rounded,
                     suffixIcon: Icons.edit_rounded,
                     suffixIconColor: Colors.grey.shade400,
@@ -113,7 +113,18 @@ class _RouteConfigurationFormState
                 left: 250.0,
                 top: 45.0,
                 child: InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    final startPoint = ref.watch(startPointProvider);
+                    final endPoint = ref.watch(endPointProvider);
+
+                    if (startPoint != null && endPoint != null) {
+                      final interm = ref.read(startPointProvider);
+
+                      ref.read(startPointProvider.notifier).state = endPoint;
+
+                      ref.read(endPointProvider.notifier).state = interm;
+                    }
+                  },
                   child: Container(
                     height: 50.0,
                     width: 50.0,
@@ -138,6 +149,32 @@ class _RouteConfigurationFormState
               ),
             ],
           ),
+          travelRoute != null
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ARMIconButton(
+                      icon: Icons.keyboard_double_arrow_up_rounded,
+                      text: 'Overview',
+                      onTap: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    ARMIconButton(
+                      icon: Icons.list_rounded,
+                      text: 'Steps',
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            return const StepsPage();
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                )
+              : const SizedBox(),
         ],
       ),
     );

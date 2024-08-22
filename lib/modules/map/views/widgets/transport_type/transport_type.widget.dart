@@ -6,18 +6,15 @@ import 'package:test/modules/map/providers/providers.dart';
 import 'package:test/utils/colors/colors.util.dart';
 
 class TransportType extends StatefulHookConsumerWidget {
-  final int index;
+  final String type;
   final IconData icon;
   final String name;
-  final String duration;
-  final Function() onTap;
+
   const TransportType({
     super.key,
-    required this.index,
+    required this.type,
     required this.icon,
     required this.name,
-    required this.duration,
-    required this.onTap,
   });
 
   @override
@@ -27,11 +24,11 @@ class TransportType extends StatefulHookConsumerWidget {
 class _TransportTypeState extends ConsumerState<TransportType> {
   @override
   Widget build(BuildContext context) {
-    final selectedTransporType = ref.watch(selectedTransportTypeProvider);
+    final travelMode = ref.watch(travelModeProvider);
+    final routeData = ref.watch(travelRouteProvider);
     return InkWell(
       onTap: () {
-        widget.onTap();
-        ref.read(selectedTransportTypeProvider.notifier).state = widget.index;
+        ref.read(travelModeProvider.notifier).state = widget.type;
       },
       child: Container(
         margin: const EdgeInsets.symmetric(
@@ -43,7 +40,7 @@ class _TransportTypeState extends ConsumerState<TransportType> {
         ),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: selectedTransporType == widget.index
+          border: travelMode == widget.type
               ? Border.all(
                   color: ARMColors.primary,
                   width: 2.0,
@@ -59,7 +56,7 @@ class _TransportTypeState extends ConsumerState<TransportType> {
           children: [
             Icon(
               widget.icon,
-              color: selectedTransporType == widget.index
+              color: travelMode == widget.type
                   ? ARMColors.primary
                   : Colors.black87,
               size: 20.0,
@@ -73,23 +70,24 @@ class _TransportTypeState extends ConsumerState<TransportType> {
               children: [
                 ARMText(
                   text: widget.name,
-                  color: selectedTransporType == widget.index
+                  color: travelMode == widget.type
                       ? Colors.grey.shade600
                       : Colors.grey.shade500,
                   fontSize: 10.0,
-                  fontWeight: selectedTransporType == widget.index
+                  fontWeight: travelMode == widget.type
                       ? FontWeight.w500
                       : FontWeight.w400,
                 ),
-                /*  ARMText(
-                  text: widget.duration,
-                  color: selectedTransporType == widget.index
-                      ? ARMColors.primary
-                      : Colors.black87,
-                  fontSize: 10.0,
-                  fontWeight: FontWeight.w700,
-                ),
-              */
+                widget.type == travelMode && routeData != null
+                    ? ARMText(
+                        text: routeData.totalDuration,
+                        color: travelMode == widget.type
+                            ? ARMColors.primary
+                            : Colors.black87,
+                        fontSize: 10.0,
+                        fontWeight: FontWeight.w700,
+                      )
+                    : const SizedBox(),
               ],
             )
           ],
