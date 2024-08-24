@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:test/common/models/location/location.model.dart';
-import 'package:test/common/services/search/search.service.dart';
 import 'package:test/modules/map/providers/providers.dart';
 import 'package:test/modules/map/views/widgets/searched_location/searched_location.widget.dart';
 import 'package:test/utils/colors/colors.util.dart';
+import 'package:test/modules/map/controllers/search/search.controller.dart';
 
 class SearchPage extends StatefulHookConsumerWidget {
   final MapController mapController;
+  final String hintText;
   final bool isSimpleSearch;
   final StateProvider<Location?> locationProvider;
   const SearchPage({
     super.key,
     required this.mapController,
+    required this.hintText,
     required this.isSimpleSearch,
     required this.locationProvider,
   });
@@ -23,14 +25,12 @@ class SearchPage extends StatefulHookConsumerWidget {
 }
 
 class _SearchPageState extends ConsumerState<SearchPage> {
-  final SearchService searchService = SearchService();
-
   final textEditingController = TextEditingController();
 
   void _handleSearch(String query) async {
     ref.read(isSearchingProvider.notifier).state = true;
     try {
-      final results = await searchService.searchPlaces(query);
+      final results = await PlaceController.searchPlaces(query: query);
 
       ref.read(searchedLocationsProvider.notifier).state = results;
 
@@ -51,7 +51,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   void _selectSearchResult(Location result) {
-    // defin result
+    // define result
     ref.read(widget.locationProvider.notifier).state = result;
 
     ref.read(markersProvider.notifier).state = [
@@ -93,7 +93,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               controller: textEditingController,
               cursorColor: ARMColors.primary,
               decoration: InputDecoration(
-                hintText: 'Search for a place',
+                hintText: widget.hintText,
                 hintStyle: const TextStyle(
                   fontSize: 14.0,
                 ),

@@ -31,7 +31,7 @@ class ARMThemeData {
       labelLarge: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold),
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
       foregroundColor: Colors.black54,
       elevation: .0,
       centerTitle: true,

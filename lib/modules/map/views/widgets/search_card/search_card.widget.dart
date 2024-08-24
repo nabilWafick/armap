@@ -7,6 +7,7 @@ import 'package:test/utils/colors/colors.util.dart';
 
 class SearchCard extends StatefulHookConsumerWidget {
   final MapController mapController;
+  final String text;
   final String hintText;
   final bool isSimpleSearch;
   final IconData prefixIcon;
@@ -18,6 +19,7 @@ class SearchCard extends StatefulHookConsumerWidget {
   const SearchCard({
     super.key,
     required this.mapController,
+    required this.text,
     required this.hintText,
     required this.isSimpleSearch,
     required this.prefixIcon,
@@ -42,6 +44,7 @@ class _SearchCardState extends ConsumerState<SearchCard> {
           MaterialPageRoute(
             builder: (context) => SearchPage(
               mapController: widget.mapController,
+              hintText: widget.hintText,
               isSimpleSearch: widget.isSimpleSearch,
               locationProvider: widget.locationProvider,
             ),
@@ -76,7 +79,7 @@ class _SearchCardState extends ConsumerState<SearchCard> {
                   width: 10.0,
                 ),
                 Text(
-                  location != null ? location.name : widget.hintText,
+                  location != null ? location.name : widget.text,
                   style: const TextStyle(
                     fontSize: 12.0,
                     fontWeight: FontWeight.w500,

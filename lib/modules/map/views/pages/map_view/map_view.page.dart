@@ -1,13 +1,14 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:test/common/models/location/location.model.dart';
 import 'package:test/common/services/location/location.service.dart';
-import 'package:test/common/services/search/search.service.dart';
 import 'package:test/common/widgets/label_value/label_value.model.dart';
 import 'package:test/modules/map/controllers/routing/routing.controller.dart';
 import 'package:test/modules/map/providers/providers.dart';
@@ -26,26 +27,65 @@ class MapView extends StatefulHookConsumerWidget {
 class _MapViewState extends ConsumerState<MapView> {
   final MapController mapController = MapController();
   final LocationService locationService = LocationService();
-  final SearchService searchService = SearchService();
+  StreamSubscription<Position>? positionStream;
+  final double visibilityThreshold = 100; // meters
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    // ping user current location
+    _pingUserCurrentLocatio();
+
+    // streaming user location
+    _initLocationTracking();
   }
 
-  Future<void> _getCurrentLocation() async {
+  Future<Location?> _getCurrentLocation() async {
     try {
       final position = await locationService.getCurrentLocation();
-      ref.read(currentUserLocationProvider.notifier).state = Location(
+
+      final userLocation = Location(
         name: 'Current',
         displayName: 'Your position',
         latLng: LatLng(position.latitude, position.longitude),
       );
 
+      ref.read(currentUserLocationProvider.notifier).state = userLocation;
+
+      return userLocation;
+    } catch (e) {
+      debugPrint('Error getting location: $e');
+    }
+    return null;
+  }
+
+  void _initLocationTracking() {
+    const LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 5,
+    );
+
+    positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position position) {
+      final userLocation = Location(
+        name: 'Current',
+        displayName: 'Your position',
+        latLng: LatLng(position.latitude, position.longitude),
+      );
+
+      ref.read(currentUserLocationProvider.notifier).state = userLocation;
+    });
+  }
+
+  Future<void> _pingUserCurrentLocatio() async {
+    final userLocation = await _getCurrentLocation();
+
+    if (userLocation != null) {
       ref.read(markersProvider.notifier).state = [
         Marker(
-          point: LatLng(position.latitude, position.longitude),
+          point: LatLng(
+              userLocation.latLng.latitude, userLocation.latLng.longitude),
           width: 17,
           height: 17,
           child: const Card(
@@ -60,8 +100,34 @@ class _MapViewState extends ConsumerState<MapView> {
           ),
         ),
       ];
+    }
+  }
 
-      mapController.move(ref.watch(currentUserLocationProvider)!.latLng, 17);
+  Future<void> _moveToCurrentLocation() async {
+    try {
+      final userLocation = await _getCurrentLocation();
+
+      if (userLocation != null) {
+        ref.read(markersProvider.notifier).state = [
+          Marker(
+            point: LatLng(
+                userLocation.latLng.latitude, userLocation.latLng.longitude),
+            width: 17,
+            height: 17,
+            child: const Card(
+              elevation: 2.0,
+              color: ARMColors.primary,
+              shape: CircleBorder(
+                side: BorderSide(
+                  width: 2.0,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ];
+        mapController.move(userLocation.latLng, 17);
+      }
     } catch (e) {
       debugPrint('Error getting location: $e');
     }
@@ -100,6 +166,7 @@ class _MapViewState extends ConsumerState<MapView> {
 
   _showRouteConfigBottomSheet() {
     showModalBottomSheet(
+      showDragHandle: true,
       context: context,
       builder: (context) {
         return RouteConfigurationForm(
@@ -157,22 +224,23 @@ class _MapViewState extends ConsumerState<MapView> {
                 ),
               ),
             ),
-            Marker(
-              point: LatLng(currentUserLocation!.latLng.latitude,
-                  currentUserLocation.latLng.longitude),
-              width: 17,
-              height: 17,
-              child: const Card(
-                elevation: 2.0,
-                color: ARMColors.primary,
-                shape: CircleBorder(
-                  side: BorderSide(
-                    width: 2.0,
-                    color: Colors.white,
+            if (currentUserLocation?.latLng == startPoint.latLng)
+              Marker(
+                point: LatLng(currentUserLocation!.latLng.latitude,
+                    currentUserLocation.latLng.longitude),
+                width: 17,
+                height: 17,
+                child: const Card(
+                  elevation: 2.0,
+                  color: ARMColors.primary,
+                  shape: CircleBorder(
+                    side: BorderSide(
+                      width: 2.0,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
             Marker(
               point: LatLng(
                 endPoint.latLng.latitude,
@@ -238,22 +306,23 @@ class _MapViewState extends ConsumerState<MapView> {
                 ),
               ),
             ),
-            Marker(
-              point: LatLng(currentUserLocation!.latLng.latitude,
-                  currentUserLocation.latLng.longitude),
-              width: 17,
-              height: 17,
-              child: const Card(
-                elevation: 2.0,
-                color: ARMColors.primary,
-                shape: CircleBorder(
-                  side: BorderSide(
-                    width: 2.0,
-                    color: Colors.white,
+            if (currentUserLocation?.latLng == next.latLng)
+              Marker(
+                point: LatLng(currentUserLocation!.latLng.latitude,
+                    currentUserLocation.latLng.longitude),
+                width: 17,
+                height: 17,
+                child: const Card(
+                  elevation: 2.0,
+                  color: ARMColors.primary,
+                  shape: CircleBorder(
+                    side: BorderSide(
+                      width: 2.0,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
             Marker(
               point: LatLng(
                 endPoint.latLng.latitude,
@@ -319,22 +388,23 @@ class _MapViewState extends ConsumerState<MapView> {
                 ),
               ),
             ),
-            Marker(
-              point: LatLng(currentUserLocation!.latLng.latitude,
-                  currentUserLocation.latLng.longitude),
-              width: 17,
-              height: 17,
-              child: const Card(
-                elevation: 2.0,
-                color: ARMColors.primary,
-                shape: CircleBorder(
-                  side: BorderSide(
-                    width: 2.0,
-                    color: Colors.white,
+            if (currentUserLocation?.latLng == startPoint.latLng)
+              Marker(
+                point: LatLng(currentUserLocation!.latLng.latitude,
+                    currentUserLocation.latLng.longitude),
+                width: 17,
+                height: 17,
+                child: const Card(
+                  elevation: 2.0,
+                  color: ARMColors.primary,
+                  shape: CircleBorder(
+                    side: BorderSide(
+                      width: 2.0,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
             Marker(
               point: LatLng(
                 next.latLng.latitude,
@@ -374,7 +444,7 @@ class _MapViewState extends ConsumerState<MapView> {
                   mapController: mapController,
                   options: MapOptions(
                     initialCenter: currentUserLocation.latLng,
-                    initialZoom: 15.0,
+                    initialZoom: 17.0,
                     onTap: (tapPosition, point) {
                       if (toggleMeasureMode) {
                         setState(() {
@@ -408,6 +478,7 @@ class _MapViewState extends ConsumerState<MapView> {
                     !toggleMeasureMode
                         ? SearchCard(
                             mapController: mapController,
+                            text: 'Place ...',
                             hintText: 'Search for a place',
                             isSimpleSearch: true,
                             prefixIcon: HugeIcons.strokeRoundedLocation01,
@@ -442,7 +513,7 @@ class _MapViewState extends ConsumerState<MapView> {
                             ],
                           ),
                     MapControls(
-                      onCenterToUser: _getCurrentLocation,
+                      onCenterToUser: _moveToCurrentLocation,
                       showRouteConfigBottomSheet: _showRouteConfigBottomSheet,
                     ),
                   ],

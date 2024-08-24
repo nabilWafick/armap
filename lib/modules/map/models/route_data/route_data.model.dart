@@ -1,27 +1,28 @@
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:test/modules/map/models/route_step/route_step.model.dart';
 
 class RouteData {
   final List<LatLng> points;
-  final List<String> instructions;
+  final List<RouteStep> steps;
   final String totalDistance;
   final String totalDuration;
   RouteData({
     required this.points,
-    required this.instructions,
+    required this.steps,
     required this.totalDistance,
     required this.totalDuration,
   });
 
   RouteData copyWith({
     List<LatLng>? points,
-    List<String>? instructions,
+    List<RouteStep>? steps,
     String? totalDistance,
     String? totalDuration,
   }) {
     return RouteData(
       points: points ?? this.points,
-      instructions: instructions ?? this.instructions,
+      steps: steps ?? this.steps,
       totalDistance: totalDistance ?? this.totalDistance,
       totalDuration: totalDuration ?? this.totalDuration,
     );
@@ -29,7 +30,7 @@ class RouteData {
 
   @override
   String toString() {
-    return 'RouteData(points: $points, instructions: $instructions, totalDistance: $totalDistance, totalDuration: $totalDuration)';
+    return 'RouteData(points: $points, steps: $steps, totalDistance: $totalDistance, totalDuration: $totalDuration)';
   }
 
   @override
@@ -38,7 +39,7 @@ class RouteData {
 
     return other is RouteData &&
         listEquals(other.points, points) &&
-        listEquals(other.instructions, instructions) &&
+        listEquals(other.steps, steps) &&
         other.totalDistance == totalDistance &&
         other.totalDuration == totalDuration;
   }
@@ -46,7 +47,7 @@ class RouteData {
   @override
   int get hashCode {
     return points.hashCode ^
-        instructions.hashCode ^
+        steps.hashCode ^
         totalDistance.hashCode ^
         totalDuration.hashCode;
   }

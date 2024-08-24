@@ -29,7 +29,7 @@ class _RouteConfigurationFormState
     final travelRoute = ref.watch(travelRouteProvider);
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: 20.0,
+        vertical: 15.0,
         horizontal: 10.0,
       ),
       /*  decoration: BoxDecoration(
@@ -88,7 +88,8 @@ class _RouteConfigurationFormState
                 children: [
                   SearchCard(
                     mapController: widget.mapController,
-                    hintText: 'Start Point',
+                    text: 'Start Point',
+                    hintText: 'Choose a start point',
                     isSimpleSearch: false,
                     prefixIcon: Icons.account_circle_rounded,
                     suffixIcon: Icons.edit_rounded,
@@ -97,7 +98,8 @@ class _RouteConfigurationFormState
                   ),
                   SearchCard(
                     mapController: widget.mapController,
-                    hintText: 'End Point',
+                    text: 'End Point',
+                    hintText: 'Choose an end point',
                     isSimpleSearch: false,
                     prefixIcon: Icons.flag_rounded,
                     suffixIcon: Icons.edit_rounded,
@@ -165,6 +167,8 @@ class _RouteConfigurationFormState
                       text: 'Steps',
                       onTap: () {
                         showModalBottomSheet(
+                          showDragHandle: true,
+                          isScrollControlled: true,
                           context: context,
                           builder: (context) {
                             return const StepsPage();
