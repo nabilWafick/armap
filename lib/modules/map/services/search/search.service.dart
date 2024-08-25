@@ -15,12 +15,9 @@ class PlaceService {
         },
       );
 
-      if (response.statusCode == 200) {
-        return response.data;
-      }
+      return response.data;
     } catch (e) {
       throw Exception('Error searching places: $e');
     }
-    return null;
   }
 }
