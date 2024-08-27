@@ -25,6 +25,8 @@ dependencies:
     git:
       url: https://github.com/nabilWafick/flutter_arcore_plugin
       ref: main
+  permission_handler: ^11.3.1
+  vector_math: ^2.1.4
 
 dev_dependencies:
   flutter_test:
