@@ -104,32 +104,28 @@ class _MapViewState extends ConsumerState<MapView> {
   }
 
   Future<void> _moveToCurrentLocation() async {
-    try {
-      final userLocation = await _getCurrentLocation();
+    final userLocation = await _getCurrentLocation();
 
-      if (userLocation != null) {
-        ref.read(markersProvider.notifier).state = [
-          Marker(
-            point: LatLng(
-                userLocation.latLng.latitude, userLocation.latLng.longitude),
-            width: 17,
-            height: 17,
-            child: const Card(
-              elevation: 2.0,
-              color: ARMColors.primary,
-              shape: CircleBorder(
-                side: BorderSide(
-                  width: 2.0,
-                  color: Colors.white,
-                ),
+    if (userLocation != null) {
+      ref.read(markersProvider.notifier).state = [
+        Marker(
+          point: LatLng(
+              userLocation.latLng.latitude, userLocation.latLng.longitude),
+          width: 17,
+          height: 17,
+          child: const Card(
+            elevation: 2.0,
+            color: ARMColors.primary,
+            shape: CircleBorder(
+              side: BorderSide(
+                width: 2.0,
+                color: Colors.white,
               ),
             ),
           ),
-        ];
-        mapController.move(userLocation.latLng, 17);
-      }
-    } catch (e) {
-      debugPrint('Error getting location: $e');
+        ),
+      ];
+      mapController.move(userLocation.latLng, 17);
     }
   }
 
@@ -191,15 +187,12 @@ class _MapViewState extends ConsumerState<MapView> {
     // listen travel mode change
     ref.listen(travelModeProvider, (previous, next) {
       if (startPoint != null && endPoint != null) {
-        debugPrint("new travel mode: $next");
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           final routeData = await RoutingController.getRoute(
             startPoint: startPoint,
             endPoint: endPoint,
             travelMode: travelMode,
           );
-
-          debugPrint('Travel Duration: ${routeData.totalDuration}');
 
           // display route info
           ref.read(travelRouteProvider.notifier).state = routeData;
@@ -438,85 +431,80 @@ class _MapViewState extends ConsumerState<MapView> {
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : Stack(
+          : FlutterMap(
+              mapController: mapController,
+              options: MapOptions(
+                initialCenter: currentUserLocation.latLng,
+                initialZoom: 17.0,
+                onTap: (tapPosition, point) {
+                  if (toggleMeasureMode) {
+                    setState(() {
+                      _addMeasurePoint(point);
+                    });
+                  }
+                },
+                minZoom: ARMConstants.minZoom,
+                maxZoom: ARMConstants.maxZoom,
+              ),
               children: [
-                FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    initialCenter: currentUserLocation.latLng,
-                    initialZoom: 17.0,
-                    onTap: (tapPosition, point) {
-                      if (toggleMeasureMode) {
-                        setState(() {
-                          _addMeasurePoint(point);
-                        });
-                      }
-                    },
-                    minZoom: ARMConstants.minZoom,
-                    maxZoom: ARMConstants.maxZoom,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.mfl.armap',
-                    ),
-                    MarkerLayer(
-                      markers: markers,
-                    ),
-                    PolylineLayer(
-                      polylines: [
-                        ...polylines,
-                        if (toggleMeasureMode)
-                          Polyline(
-                            points: measurePoints,
-                            color: Colors.green.shade500,
-                            strokeWidth: 5.0,
-                          )
-                      ],
-                    ),
-                    !toggleMeasureMode
-                        ? SearchCard(
-                            mapController: mapController,
-                            text: 'Place ...',
-                            hintText: 'Search for a place',
-                            isSimpleSearch: true,
-                            prefixIcon: HugeIcons.strokeRoundedLocation01,
-                            suffixIcon: HugeIcons.strokeRoundedSearch01,
-                            suffixIconColor: ARMColors.primary,
-                            locationProvider: searchedLocationProvider,
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 15.0,
-                                  vertical: 10.0,
-                                ),
-                                padding: const EdgeInsets.all(15.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(25.0),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    LabelValue(
-                                      label: 'Distance',
-                                      value:
-                                          '${measuredDistance.toStringAsFixed(3)}km',
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                    MapControls(
-                      onCenterToUser: _moveToCurrentLocation,
-                      showRouteConfigBottomSheet: _showRouteConfigBottomSheet,
-                    ),
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.mfl.armap',
+                ),
+                MarkerLayer(
+                  markers: markers,
+                ),
+                PolylineLayer(
+                  polylines: [
+                    ...polylines,
+                    if (toggleMeasureMode)
+                      Polyline(
+                        points: measurePoints,
+                        color: Colors.green.shade500,
+                        strokeWidth: 5.0,
+                      )
                   ],
+                ),
+                !toggleMeasureMode
+                    ? SearchCard(
+                        mapController: mapController,
+                        text: 'Place ...',
+                        hintText: 'Search for a place',
+                        isSimpleSearch: true,
+                        prefixIcon: HugeIcons.strokeRoundedLocation01,
+                        suffixIcon: HugeIcons.strokeRoundedSearch01,
+                        suffixIconColor: ARMColors.primary,
+                        locationProvider: searchedLocationProvider,
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 15.0,
+                              vertical: 10.0,
+                            ),
+                            padding: const EdgeInsets.all(15.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(25.0),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                LabelValue(
+                                  label: 'Distance',
+                                  value:
+                                      '${measuredDistance.toStringAsFixed(3)}km',
+                                )
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                MapControls(
+                  onCenterToUser: _moveToCurrentLocation,
+                  showRouteConfigBottomSheet: _showRouteConfigBottomSheet,
                 ),
               ],
             ),

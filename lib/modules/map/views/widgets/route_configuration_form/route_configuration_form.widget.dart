@@ -3,9 +3,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:test/common/widgets/icon_button/icon_button.widget.dart';
 import 'package:test/common/widgets/text/text.widget.dart';
+import 'package:test/modules/ar/navigation/navigation.page.dart';
 import 'package:test/modules/map/models/travel_mode/travel_mode.model.dart';
 import 'package:test/modules/map/providers/providers.dart';
-import 'package:test/modules/map/views/pages/steps/steps.page.dart';
+import 'package:test/modules/map/views/pages/steps/steps_list.page.dart';
 import 'package:test/modules/map/views/widgets/search_card/search_card.widget.dart';
 import 'package:test/modules/map/views/widgets/transport_type/transport_type.widget.dart';
 import 'package:test/utils/colors/colors.util.dart';
@@ -169,10 +170,26 @@ class _RouteConfigurationFormState
                         showModalBottomSheet(
                           showDragHandle: true,
                           isScrollControlled: true,
+                          useSafeArea: true,
                           context: context,
                           builder: (context) {
-                            return const StepsPage();
+                            return const StepsListPage();
                           },
+                        );
+                      },
+                    ),
+                    ARMIconButton(
+                      icon: Icons.keyboard_double_arrow_up_rounded,
+                      text: 'AR View',
+                      onTap: () {
+                        final routeData = ref.read(travelRouteProvider);
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ARNavigationPage(
+                              routeData: routeData!,
+                            ),
+                          ),
                         );
                       },
                     ),

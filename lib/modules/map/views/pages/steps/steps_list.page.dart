@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:test/common/widgets/widgets.common.dart';
 import 'package:test/modules/map/providers/providers.dart';
+import 'package:test/modules/map/views/pages/steps/steps_overview.page.dart';
 import 'package:test/utils/utils.dart';
 
-class StepsPage extends StatefulHookConsumerWidget {
-  const StepsPage({super.key});
+class StepsListPage extends StatefulHookConsumerWidget {
+  const StepsListPage({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _StepsPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _StepsListPageState();
 }
 
-class _StepsPageState extends ConsumerState<StepsPage> {
+class _StepsListPageState extends ConsumerState<StepsListPage> {
   @override
   Widget build(BuildContext context) {
     final travelRoute = ref.watch(travelRouteProvider);
@@ -36,6 +37,15 @@ class _StepsPageState extends ConsumerState<StepsPage> {
             children: steps
                 .map(
                   (step) => ListTile(
+                    onTap: () {
+                      ref.read(selectedRouteStepProvider.notifier).state = step;
+
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const StepsOverview(),
+                        ),
+                      );
+                    },
                     style: ListTileStyle.list,
                     leading: Column(
                       children: [

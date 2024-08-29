@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:test/modules/ar/navigation/navigation.page.dart';
 import 'package:test/modules/map/providers/providers.dart';
 import 'package:test/utils/utils.dart';
 
@@ -83,7 +84,17 @@ class _MapControlsState extends ConsumerState<MapControls> {
           travelRouteData != null
               ? FloatingActionButton(
                   heroTag: 'AR Mode',
-                  onPressed: () {},
+                  onPressed: () {
+                    final travelRouteData = ref.watch(travelRouteProvider);
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ARNavigationPage(
+                          routeData: travelRouteData!,
+                        ),
+                      ),
+                    );
+                  },
                   child: const Icon(
                     Icons.view_in_ar_rounded,
                     color: Colors.white,

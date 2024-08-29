@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:test/common/models/location/location.model.dart';
 import 'package:test/modules/map/models/map.models.dart';
 import 'package:test/modules/map/models/route_data/route_data.model.dart';
+import 'package:test/modules/map/models/route_step/route_step.model.dart';
 
 final currentUserLocationProvider = StateProvider<Location?>((ref) {
   return;
@@ -42,7 +43,11 @@ final travelRouteProvider = StateProvider<RouteData?>((ref) {
 });
 
 final polylinesProvider = StateProvider<List<Polyline>>((ref) {
-  return [];
+  return <Polyline>[];
+});
+
+final selectedRouteStepProvider = StateProvider<RouteStep?>((ref) {
+  return;
 });
 
 final selectedTransportTypeProvider = StateProvider<int>((ref) {

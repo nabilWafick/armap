@@ -3,15 +3,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_arcore_plugin/flutter_arcore_plugin.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shape_of_view_null_safe/shape_of_view_null_safe.dart';
 import 'package:test/modules/map/models/route_data/route_data.model.dart';
 import 'package:test/modules/map/models/route_step/route_step.model.dart';
 import 'package:test/modules/map/providers/providers.dart';
 import 'package:test/utils/utils.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math_64.dart' as vector;
 
 class ARNavigationPage extends ConsumerStatefulWidget {
   final RouteData routeData;
@@ -27,6 +29,7 @@ class ARNavigationPage extends ConsumerStatefulWidget {
 
 class _ARNavigationPageState extends ConsumerState<ARNavigationPage> {
   ArCoreController arCoreController = ArCoreController(id: 1);
+  final MapController mapController = MapController();
   List<ArCoreNode> routeNodes = [];
   final double visibilityThreshold = 100; // meters
   Set<LatLng> placedPoints = {};
@@ -61,10 +64,99 @@ class _ARNavigationPageState extends ConsumerState<ARNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ArCoreView(
-      onArCoreViewCreated: _onArCoreViewCreated,
-      enableTapRecognizer: true,
-      enableUpdateListener: true,
+    final currentUserLocation = ref.watch(currentUserLocationProvider);
+    return Stack(
+      children: [
+        ArCoreView(
+          onArCoreViewCreated: _onArCoreViewCreated,
+          enableTapRecognizer: true,
+          enableUpdateListener: true,
+        ),
+        DraggableScrollableSheet(
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              physics: const BouncingScrollPhysics(),
+              child: ShapeOfView(
+                shape: ArcShape(
+                  position: ArcPosition.Top,
+                  height: 40.0,
+                ),
+                height: MediaQuery.of(context).size.height,
+                child: FlutterMap(
+                  mapController: mapController,
+                  options: MapOptions(
+                    initialCenter: widget.routeData.points.first,
+                    initialZoom: 15.0,
+                    minZoom: ARMConstants.minZoom,
+                    maxZoom: ARMConstants.maxZoom,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.mfl.armap',
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: LatLng(currentUserLocation!.latLng.latitude,
+                              currentUserLocation.latLng.longitude),
+                          width: 17,
+                          height: 17,
+                          child: const Card(
+                            elevation: 2.0,
+                            color: ARMColors.primary,
+                            shape: CircleBorder(
+                              side: BorderSide(
+                                width: 2.0,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Marker(
+                          point: widget.routeData.points.first,
+                          width: 14,
+                          height: 14,
+                          child: Card(
+                            elevation: 1.0,
+                            color: Colors.grey.shade400,
+                            shape: const CircleBorder(
+                              side: BorderSide(
+                                width: 1.0,
+                                color: Colors.black45,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Marker(
+                          point: widget.routeData.points.last,
+                          width: 50,
+                          height: 50,
+                          child: Icon(
+                            Icons.location_pin,
+                            color: Colors.red[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: widget.routeData.points,
+                          color: ARMColors.primary,
+                          strokeWidth: 5.0,
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        )
+      ],
     );
   }
 
@@ -101,7 +193,7 @@ class _ARNavigationPageState extends ConsumerState<ARNavigationPage> {
   }
 
   bool _placeObjectAtLocation(double lat, double lon, bool isDestination) {
-    Vector3 position = _calculateARPosition(lat, lon);
+    vector.Vector3 position = _calculateARPosition(lat, lon);
 
     String startPointObjectUrl =
         "https://raw.githubusercontent.com/nabilWafick/armap_obj/main/arrow/source/arrow.glb";
@@ -113,7 +205,7 @@ class _ARNavigationPageState extends ConsumerState<ARNavigationPage> {
         ? ArCoreReferenceNode(
             objectUrl: startPointObjectUrl,
             position: position,
-            scale: Vector3(0.2, 0.2, 0.2),
+            scale: vector.Vector3(0.2, 0.2, 0.2),
           )
         : !isDestination
             ? ArCoreNode(
@@ -131,7 +223,7 @@ class _ARNavigationPageState extends ConsumerState<ARNavigationPage> {
             : ArCoreReferenceNode(
                 objectUrl: endPointObjectUrl,
                 position: position,
-                scale: Vector3(0.2, 0.2, 0.2),
+                scale: vector.Vector3(0.2, 0.2, 0.2),
               );
     arCoreController.addArCoreNodeWithAnchor(node).catchError(
       (e) {
@@ -143,7 +235,7 @@ class _ARNavigationPageState extends ConsumerState<ARNavigationPage> {
   }
 
   bool _placeTurnObject(RouteStep turnPoint) {
-    Vector3 position = _calculateARPosition(
+    vector.Vector3 position = _calculateARPosition(
         turnPoint.location.latitude, turnPoint.location.longitude);
 
     String objectUrl =
@@ -152,7 +244,7 @@ class _ARNavigationPageState extends ConsumerState<ARNavigationPage> {
     ArCoreReferenceNode node = ArCoreReferenceNode(
       objectUrl: objectUrl,
       position: position,
-      scale: Vector3(0.3, 0.3, 0.3),
+      scale: vector.Vector3(0.3, 0.3, 0.3),
     );
     arCoreController.addArCoreNode(node).catchError((e) {
       debugPrint("Error loading AR turn object: $e");
@@ -161,7 +253,7 @@ class _ARNavigationPageState extends ConsumerState<ARNavigationPage> {
     return true;
   }
 
-  Vector3 _calculateARPosition(double lat, double lon) {
+  vector.Vector3 _calculateARPosition(double lat, double lon) {
     final currentPosition = ref.watch(currentUserLocationProvider);
     double distanceInMeters = Geolocator.distanceBetween(
         currentPosition!.latLng.latitude,
@@ -179,7 +271,7 @@ class _ARNavigationPageState extends ConsumerState<ARNavigationPage> {
     double x = distanceInMeters * sin(bearingInRadians);
     double z = -distanceInMeters * cos(bearingInRadians);
 
-    return Vector3(x, 0, z);
+    return vector.Vector3(x, 0, z);
   }
 
   bool _isWithinVisibilityThreshold(LatLng position1, LatLng position2) {
